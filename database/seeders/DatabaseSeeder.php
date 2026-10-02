@@ -11,8 +11,8 @@ class DatabaseSeeder extends Seeder
     {
         // Usuário padrão para testes
         User::create([
-            'name'     => 'Operador PDV',
-            'email'    => 'operador@pdv.com',
+            'name'     => 'Teste PDV',
+            'email'    => 'teste@pdv.com',
             'password' => 'senha123', // cast 'hashed' no Model já hasheia
         ]);
 
