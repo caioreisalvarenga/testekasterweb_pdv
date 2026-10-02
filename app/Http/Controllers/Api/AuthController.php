@@ -3,41 +3,26 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Services\AuthService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    /**
+     * O container do Laravel injeta o AuthService automaticamente.
+     */
+    public function __construct(private AuthService $authService) {}
+
     public function login(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $result = $this->authService->login($data['email'], $data['password']);
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['Credenciais inválidas.'],
-            ]);
-        }
-
-        // Revoga tokens antigos (opcional, evita acúmulo)
-        $user->tokens()->delete();
-
-        $token = $user->createToken('pdv-token')->plainTextToken;
-
-        return response()->json([
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-            ],
-            'token' => $token,
-        ]);
+        return response()->json($result);
     }
 
     public function me(Request $request)
@@ -47,7 +32,7 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $this->authService->logout($request->user());
 
         return response()->json(['message' => 'Logout realizado com sucesso.']);
     }
