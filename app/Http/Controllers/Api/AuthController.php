@@ -4,36 +4,30 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\AuthService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
-    /**
-     * O container do Laravel injeta o AuthService automaticamente.
-     */
     public function __construct(private AuthService $authService) {}
 
-    public function login(Request $request)
+    public function login(Request $request): JsonResponse
     {
-        $data = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
-        ]);
-
-        $result = $this->authService->login($data['email'], $data['password']);
-
-        return response()->json($result);
+        return response()->json(
+            $this->authService->login($request)
+        );
     }
 
-    public function me(Request $request)
+    public function me(Request $request): JsonResponse
     {
-        return response()->json($request->user());
+        return response()->json(
+            $this->authService->me($request)
+        );
     }
 
-    public function logout(Request $request)
+    public function logout(Request $request): JsonResponse
     {
-        $this->authService->logout($request->user());
-
+        $this->authService->logout($request);
         return response()->json(['message' => 'Logout realizado com sucesso.']);
     }
 }
