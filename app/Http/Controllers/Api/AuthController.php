@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\LoginRequest;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -11,23 +12,23 @@ class AuthController extends Controller
 {
     public function __construct(private AuthService $authService) {}
 
-    public function login(Request $request): JsonResponse
+    public function login(LoginRequest $request): JsonResponse
     {
         return response()->json(
-            $this->authService->login($request)
+            $this->authService->login($request->validated())
         );
     }
 
     public function me(Request $request): JsonResponse
     {
         return response()->json(
-            $this->authService->me($request)
+            $this->authService->me($request->user())
         );
     }
 
     public function logout(Request $request): JsonResponse
     {
-        $this->authService->logout($request);
+        $this->authService->logout($request->user());
         return response()->json(['message' => 'Logout realizado com sucesso.']);
     }
 }

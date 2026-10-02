@@ -3,24 +3,21 @@
 namespace App\Services;
 
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class AuthService
 {
     /**
-     * Autentica o usuário a partir de uma Request HTTP.
+     * Autentica o usuário e retorna os dados + token Sanctum.
+     *
+     * @param  array{email: string, password: string}  $data
+     * @return array{user: array{id: int, name: string, email: string}, token: string}
      *
      * @throws ValidationException
      */
-    public function login(Request $request): array
+    public function login(array $data): array
     {
-        $data = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
-        ]);
-
         $user = User::where('email', $data['email'])->first();
 
         if (! $user || ! Hash::check($data['password'], $user->password)) {
@@ -29,7 +26,7 @@ class AuthService
             ]);
         }
 
-        // Revoga tokens antigos (evita acúmulo)
+        // Revoga tokens antigos para evitar acúmulo
         $user->tokens()->delete();
 
         $token = $user->createToken('pdv-token')->plainTextToken;
@@ -46,11 +43,11 @@ class AuthService
 
     /**
      * Retorna os dados do usuário autenticado.
+     *
+     * @return array{id: int, name: string, email: string}
      */
-    public function me(Request $request): array
+    public function me(User $user): array
     {
-        $user = $request->user();
-
         return [
             'id'    => $user->id,
             'name'  => $user->name,
@@ -61,8 +58,8 @@ class AuthService
     /**
      * Revoga o token atual do usuário autenticado.
      */
-    public function logout(Request $request): void
+    public function logout(User $user): void
     {
-        $request->user()->currentAccessToken()->delete();
+        $user->currentAccessToken()->delete();
     }
 }
