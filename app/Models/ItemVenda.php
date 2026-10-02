@@ -1,0 +1,41 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class ItemVenda extends Model
+{
+    use HasFactory;
+
+    protected $table = 'venda_itens';
+
+    protected $fillable = [
+        'venda_id',
+        'produto_id',
+        'quantidade',
+        'preco_unitario',
+        'subtotal',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'quantidade'     => 'integer',
+            'preco_unitario' => 'decimal:2',
+            'subtotal'       => 'decimal:2',
+        ];
+    }
+
+    public function venda(): BelongsTo
+    {
+        return $this->belongsTo(Venda::class);
+    }
+
+    public function produto(): BelongsTo
+    {
+        return $this->belongsTo(Produto::class);
+    }
+}
