@@ -4,16 +4,21 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Usuário padrão para testes
         User::create([
-            'name' => 'testePDV',
-            'email' => 'teste@pdv.com',
-            'password' => Hash::make('senha123'),
+            'name'     => 'Teste PDV',
+            'email'    => 'teste@pdv.com',
+            'password' => 'senha123', // cast 'hashed' no Model já hasheia
+        ]);
+
+        // Produtos de exemplo
+        $this->call([
+            ProdutoSeeder::class,
         ]);
     }
 }
