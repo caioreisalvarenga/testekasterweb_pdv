@@ -3,9 +3,17 @@ import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Store, Loader2, Lock, Mail } from "lucide-react"
+import { authService } from "@/services/auth.service"
+import { extrairMensagemErro } from "@/services/api"
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -20,26 +28,14 @@ export function LoginPage() {
     setError("")
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      })
+      const { user, token } = await authService.login(email, password)
 
-      const data = await res.json()
+      localStorage.setItem("pdv-token", token)
+      localStorage.setItem("pdv-user", JSON.stringify(user))
 
-      if (!res.ok) {
-        throw new Error(data.message || "Credenciais inválidas")
-      }
-
-      localStorage.setItem("pdv-token", data.token)
-      localStorage.setItem("pdv-user", JSON.stringify(data.user))
       navigate("/dashboard")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao fazer login")
+      setError(extrairMensagemErro(err))
     } finally {
       setLoading(false)
     }
@@ -47,12 +43,10 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen w-full relative flex items-center justify-center overflow-hidden bg-background">
-      {/* Fundo decorativo com gradiente */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-primary/10 dark:from-primary/10 dark:via-background dark:to-primary/20" />
       <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-primary/20 blur-3xl dark:bg-primary/10" />
       <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-primary/20 blur-3xl dark:bg-primary/10" />
 
-      {/* Botão de tema no canto */}
       <div className="absolute top-6 right-6 z-10">
         <ThemeToggle />
       </div>
@@ -129,7 +123,7 @@ export function LoginPage() {
           </form>
 
           <p className="mt-6 text-center text-xs text-muted-foreground">
-            Credenciais de teste: operador@pdv.com / senha123
+            Credenciais de teste: teste@pdv.com / senha123
           </p>
         </CardContent>
       </Card>
