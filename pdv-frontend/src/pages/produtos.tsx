@@ -1,154 +1,89 @@
-import { useEffect, useState } from "react"
-import { api } from "@/services/api"
+import { useState } from "react"
+import { useProdutos } from "@/hooks/use-produtos"
+import { useDebounce } from "@/hooks/use-debounce"
+import { produtosService } from "@/services/produtos.service"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  Search,
-  Plus,
-  Pencil,
-  Trash2,
-  Package,
-  Loader2,
-} from "lucide-react"
+import { Search, Plus, Pencil, Trash2, Package, Loader2 } from "lucide-react"
+import type { Produto, ProdutoForm } from "@/types/produto"
 
-type Produto = {
-  id: number
-  nome: string
-  codigo: string
-  preco: string
-  disponivel: boolean
-  estoque: number
-}
-
-type FormProduto = {
-  nome: string
-  codigo: string
-  preco: string
-  disponivel: boolean
-  estoque: number
-}
-
-const formVazio: FormProduto = {
+const formVazio: ProdutoForm = {
   nome: "",
   codigo: "",
-  preco: "",
+  preco: 0,
   disponivel: true,
   estoque: 0,
 }
 
 export function ProdutosPage() {
-  const [produtos, setProdutos] = useState<Produto[]>([])
   const [busca, setBusca] = useState("")
-  const [loading, setLoading] = useState(true)
-  const [erro, setErro] = useState("")
+  const buscaDebounced = useDebounce(busca, 400)
+  const { produtos, loading, erro, recarregar } = useProdutos(buscaDebounced)
 
-  const [modalAberto, setModalAberto] = useState(false)
+  const [modal, setModal] = useState(false)
   const [editando, setEditando] = useState<Produto | null>(null)
-  const [form, setForm] = useState<FormProduto>(formVazio)
+  const [form, setForm] = useState<ProdutoForm>(formVazio)
   const [salvando, setSalvando] = useState(false)
   const [erroForm, setErroForm] = useState("")
-
-  // Carrega produtos
-  async function carregar(buscaAtual = "") {
-    setLoading(true)
-    setErro("")
-    try {
-      const { data } = await api.get<Produto[]>("/produtos", {
-        params: { busca: buscaAtual || undefined },
-      })
-      setProdutos(data)
-    } catch (e) {
-      setErro("Erro ao carregar produtos.")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    carregar()
-  }, [])
-
-  // Debounce da busca
-  useEffect(() => {
-    const t = setTimeout(() => carregar(busca), 400)
-    return () => clearTimeout(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [busca])
 
   function abrirNovo() {
     setEditando(null)
     setForm(formVazio)
     setErroForm("")
-    setModalAberto(true)
+    setModal(true)
   }
 
-  function abrirEdicao(produto: Produto) {
-    setEditando(produto)
+  function abrirEdicao(p: Produto) {
+    setEditando(p)
     setForm({
-      nome: produto.nome,
-      codigo: produto.codigo,
-      preco: produto.preco,
-      disponivel: produto.disponivel,
-      estoque: produto.estoque,
+      nome: p.nome,
+      codigo: p.codigo,
+      preco: p.preco,
+      disponivel: p.disponivel,
+      estoque: p.estoque,
     })
     setErroForm("")
-    setModalAberto(true)
+    setModal(true)
   }
 
   async function salvar(e: React.FormEvent) {
     e.preventDefault()
     setSalvando(true)
     setErroForm("")
-
     try {
-      const payload = {
-        ...form,
-        preco: Number(form.preco),
-        estoque: Number(form.estoque),
-      }
-
       if (editando) {
-        await api.put(`/produtos/${editando.id}`, payload)
+        await produtosService.atualizar(editando.id, form)
       } else {
-        await api.post("/produtos", payload)
+        await produtosService.criar(form)
       }
-
-      setModalAberto(false)
-      carregar(busca)
+      setModal(false)
+      recarregar()
     } catch (err: any) {
-      const msg =
-        err.response?.data?.message ||
-        "Erro ao salvar. Verifique os campos."
-      setErroForm(msg)
+      setErroForm(err.message || "Erro ao salvar.")
     } finally {
       setSalvando(false)
     }
   }
 
-  async function excluir(produto: Produto) {
-    if (!confirm(`Excluir o produto "${produto.nome}"?`)) return
-
-    try {
-      await api.delete(`/produtos/${produto.id}`)
-      carregar(busca)
-    } catch {
-      alert("Erro ao excluir produto.")
-    }
+  async function excluir(p: Produto) {
+    if (!confirm(`Excluir "${p.nome}"?`)) return
+    await produtosService.excluir(p.id)
+    recarregar()
   }
 
   return (
     <div className="p-6 space-y-6">
-      {/* Cabeçalho */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Produtos</h1>
@@ -162,7 +97,6 @@ export function ProdutosPage() {
         </Button>
       </div>
 
-      {/* Busca */}
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -173,7 +107,6 @@ export function ProdutosPage() {
         />
       </div>
 
-      {/* Estados */}
       {loading && (
         <div className="flex items-center justify-center py-12 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin mr-2" />
@@ -198,51 +131,44 @@ export function ProdutosPage() {
         </Card>
       )}
 
-      {/* Grid */}
       {!loading && !erro && produtos.length > 0 && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {produtos.map((produto) => (
-            <Card key={produto.id} className="overflow-hidden">
+          {produtos.map((p) => (
+            <Card key={p.id}>
               <CardContent className="p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold truncate">{produto.nome}</p>
+                    <p className="font-semibold truncate">{p.nome}</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Código: {produto.codigo}
+                      Código: {p.codigo}
                     </p>
                   </div>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
-                      produto.disponivel
-                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                        : "bg-red-500/10 text-red-600 dark:text-red-400"
-                    }`}
-                  >
-                    {produto.disponivel ? "Disponível" : "Indisponível"}
-                  </span>
+                  <Badge variant={p.disponivel ? "success" : "destructive"}>
+                    {p.disponivel ? "Disponível" : "Indisponível"}
+                  </Badge>
                 </div>
 
                 <div className="flex items-end justify-between mt-4">
                   <div>
                     <p className="text-2xl font-bold text-primary">
-                      R$ {Number(produto.preco).toFixed(2)}
+                      R$ {p.preco.toFixed(2)}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Estoque: {produto.estoque}
+                      Estoque: {p.estoque}
                     </p>
                   </div>
                   <div className="flex gap-1">
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => abrirEdicao(produto)}
+                      onClick={() => abrirEdicao(p)}
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => excluir(produto)}
+                      onClick={() => excluir(p)}
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
@@ -254,8 +180,7 @@ export function ProdutosPage() {
         </div>
       )}
 
-      {/* Modal de cadastro/edição */}
-      <Dialog open={modalAberto} onOpenChange={setModalAberto}>
+      <Dialog open={modal} onOpenChange={setModal}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -263,8 +188,8 @@ export function ProdutosPage() {
             </DialogTitle>
             <DialogDescription>
               {editando
-                ? "Atualize as informações do produto."
-                : "Preencha os dados do novo produto."}
+                ? "Atualize as informações."
+                : "Preencha os dados."}
             </DialogDescription>
           </DialogHeader>
 
@@ -298,7 +223,9 @@ export function ProdutosPage() {
                   step="0.01"
                   min="0"
                   value={form.preco}
-                  onChange={(e) => setForm({ ...form, preco: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, preco: Number(e.target.value) })
+                  }
                   required
                 />
               </div>
@@ -339,13 +266,13 @@ export function ProdutosPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setModalAberto(false)}
+                onClick={() => setModal(false)}
               >
                 Cancelar
               </Button>
               <Button type="submit" disabled={salvando}>
                 {salvando && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {editando ? "Salvar alterações" : "Criar produto"}
+                {editando ? "Salvar" : "Criar"}
               </Button>
             </DialogFooter>
           </form>
