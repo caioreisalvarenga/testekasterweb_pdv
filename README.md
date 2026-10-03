@@ -20,7 +20,6 @@ Sistema completo de Ponto de Venda (PDV) desenvolvido para o teste prático da *
 - [Endpoints da API](#-endpoints-da-api)
 - [Collection do Postman](#-collection-do-postman)
 - [Regras de Negócio](#-regras-de-negócio)
-- [Testes Automatizados](#-testes-automatizados)
 - [Estratégia de Versionamento](#-estratégia-de-versionamento)
 - [O que ficou de fora](#-o-que-ficou-de-fora)
 - [Autor](#-autor)
@@ -54,7 +53,6 @@ O sistema é uma **frente de caixa (PDV)** onde um operador autenticado pode:
 | Produtos | CRUD completo + busca por nome/código + filtro de disponíveis |
 | Vendas | Criação com regras de negócio, consulta de comprovante, histórico por data |
 | Seeders | Usuário de teste + 10 produtos + 1 indisponível |
-| Testes | Pest cobrindo as regras principais |
 
 ### Frontend
 
@@ -79,8 +77,7 @@ O sistema é uma **frente de caixa (PDV)** onde um operador autenticado pode:
 | **PHP 8.2+** | Requisito do Laravel 11 |
 | **Laravel 11** | Framework exigido pelo teste |
 | **Laravel Sanctum** | Autenticação stateless via API token |
-| **MySQL 8.0+** | Banco relacional robusto, ambiente padrão do desenvolvimento |
-| **Pest** | Framework de testes moderno |
+| **MySQL 8.0+** | Banco relacional, ambiente padrão do desenvolvimento |
 
 ### Frontend
 
@@ -90,10 +87,12 @@ O sistema é uma **frente de caixa (PDV)** onde um operador autenticado pode:
 | **TypeScript** | Tipagem estática (bem-vinda no enunciado) |
 | **Vite** | Build tool moderna, padrão da comunidade |
 | **Tailwind CSS 4** | Utilitários de estilo e tema consistente |
-| **shadcn/ui** | Componentes acessíveis baseados em Radix UI |
+| **shadcn/ui** | Componentes acessíveis baseados em Radix UI (copiados para o projeto, não é dependência fechada) |
 | **React Router 7** | Navegação client-side |
 | **Axios** | Cliente HTTP com interceptors |
 | **Lucide React** | Ícones modernos |
+
+> 💡 **Sobre o shadcn/ui:** não é uma biblioteca tradicional — é uma coleção de componentes que você **copia e cola** no projeto. Os arquivos ficam em `src/components/ui/` e são totalmente editáveis. Ele combina Radix UI (acessibilidade), Tailwind (estilo) e CVA (variantes).
 
 ---
 
@@ -251,9 +250,6 @@ pdv/
 ├── routes/
 │   └── api.php
 │
-├── tests/
-│   └── Feature/
-│
 ├── docs/
 │   └── pdv.postman_collection.json
 │
@@ -348,7 +344,7 @@ Em **outro terminal**:
 # 1. Entre na pasta do frontend
 cd pdv-frontend
 
-# 2. Instale as dependências
+# 2. Instale as dependências (lê o package.json automaticamente)
 npm install
 
 # 3. Configure o .env
@@ -359,6 +355,8 @@ npm run dev
 ```
 
 ✅ Frontend disponível em **http://localhost:5173**
+
+> 💡 O `npm install` lê o `package.json` e instala automaticamente **todas** as dependências (React, Axios, Tailwind, shadcn/ui, Lucide, etc.). Não é necessário instalar pacote por pacote.
 
 ### 🌐 Acessar o sistema
 
@@ -516,28 +514,6 @@ Use `teste@pdv.com` / `senha123` na requisição **Auth → Login**.
 
 ---
 
-## 🧪 Testes Automatizados
-
-Os testes cobrem as regras principais e podem ser rodados com:
-
-```bash
-php artisan test
-```
-
-### Cobertura
-
-- ✅ Login com credenciais válidas
-- ✅ Login com senha inválida (422)
-- ✅ Rotas protegidas exigem token (401)
-- ✅ Criar venda com item válido
-- ✅ Criar venda com produto indisponível (422)
-- ✅ Criar venda em dinheiro com valor insuficiente (422)
-- ✅ Cálculo de troco
-- ✅ Total recalculado no backend (ignora `total` enviado pelo cliente)
-- ✅ Venda imutável (não há rotas PUT/DELETE)
-
----
-
 ## 🌳 Estratégia de Versionamento
 
 O projeto foi versionado com **commits atômicos e descritivos**, seguindo o padrão [Conventional Commits](https://www.conventionalcommits.org/):
@@ -565,6 +541,7 @@ Se o projeto fosse para um time, aí sim faria sentido adotar Git flow com branc
 
 Para manter o escopo controlado (conforme orientação do enunciado: *"prefira um escopo menor, bem feito e explicado"*), os seguintes itens **não** foram implementados:
 
+- ❌ **Testes automatizados** — priorizei cobrir as regras manualmente via Postman e validação end-to-end
 - ❌ **Cadastro público de usuário** (`/register`) — não é exigido
 - ❌ **Recuperação de senha** — não é exigido
 - ❌ **Permissões/perfis** (admin vs operador) — não é exigido
@@ -579,6 +556,7 @@ Para manter o escopo controlado (conforme orientação do enunciado: *"prefira u
 - ✅ **Histórico de vendas por data** — bônus do enunciado
 - ✅ **Tema claro/escuro persistente** — melhoria de UX
 - ✅ **Dashboard com métricas** — visão geral do movimento
+- ✅ **Collection do Postman** — facilita testes manuais
 
 ---
 
