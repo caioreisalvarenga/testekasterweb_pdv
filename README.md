@@ -49,7 +49,6 @@ O sistema é uma **frente de caixa (PDV)** onde um operador autenticado pode:
 | Área | Implementado |
 |---|---|
 | Autenticação | Login via API token (Sanctum), logout, `/me` |
-| Usuários | CRUD completo (extra — documentado abaixo) |
 | Produtos | CRUD completo + busca por nome/código + filtro de disponíveis |
 | Vendas | Criação com regras de negócio, consulta de comprovante, histórico por data |
 | Seeders | Usuário de teste + 10 produtos + 1 indisponível |
@@ -222,7 +221,6 @@ pdv/
 │   │   ├── Controllers/Api/
 │   │   │   ├── AuthController.php
 │   │   │   ├── ProdutoController.php
-│   │   │   ├── UsuarioController.php
 │   │   │   └── VendaController.php
 │   │   └── Requests/
 │   │       ├── LoginRequest.php
@@ -237,7 +235,6 @@ pdv/
 │   └── Services/
 │       ├── AuthService.php
 │       ├── ProdutoService.php
-│       ├── UsuarioService.php
 │       └── VendaService.php
 │
 ├── database/
@@ -392,16 +389,6 @@ Abra **http://localhost:5173** no navegador. Você será redirecionado para o lo
 | `GET` | `/api/me` | Retorna o usuário autenticado |
 | `POST` | `/api/logout` | Revoga o token atual |
 
-#### Usuários (extra)
-
-| Método | Rota | Descrição |
-|---|---|---|
-| `GET` | `/api/usuarios` | Lista todos |
-| `POST` | `/api/usuarios` | Cria |
-| `GET` | `/api/usuarios/{id}` | Detalhe |
-| `PUT` | `/api/usuarios/{id}` | Atualiza |
-| `DELETE` | `/api/usuarios/{id}` | Remove |
-
 #### Produtos
 
 | Método | Rota | Descrição |
@@ -462,7 +449,6 @@ O repositório inclui uma collection completa em **`docs/pdv.postman_collection.
 Ela contém:
 
 - ✅ Autenticação (login, me, logout) — com token salvo automaticamente
-- ✅ CRUD de usuários
 - ✅ CRUD de produtos (com busca e filtro de disponíveis)
 - ✅ Criação de venda (dinheiro, pix) + casos de erro (422)
 - ✅ Consulta de venda
@@ -483,7 +469,6 @@ Ela contém:
 | `token` | *(vazio)* | Requisição **Login** |
 | `produto_id` | *(vazio)* | Requisição **Criar produto** |
 | `venda_id` | *(vazio)* | Requisição **Criar venda - dinheiro** |
-| `usuario_id` | *(vazio)* | Requisição **Criar usuário** |
 
 ### Fluxo de uso
 
@@ -542,6 +527,7 @@ Se o projeto fosse para um time, aí sim faria sentido adotar Git flow com branc
 Para manter o escopo controlado (conforme orientação do enunciado: *"prefira um escopo menor, bem feito e explicado"*), os seguintes itens **não** foram implementados:
 
 - ❌ **Testes automatizados** — priorizei cobrir as regras manualmente via Postman e validação end-to-end
+- ❌ **CRUD de usuários** — o teste só exige login, não gerenciamento de usuários
 - ❌ **Cadastro público de usuário** (`/register`) — não é exigido
 - ❌ **Recuperação de senha** — não é exigido
 - ❌ **Permissões/perfis** (admin vs operador) — não é exigido
@@ -552,7 +538,6 @@ Para manter o escopo controlado (conforme orientação do enunciado: *"prefira u
 
 ### Extra não pedido, mas incluído
 
-- ✅ **CRUD completo de usuários** — implementado como extensão natural do bônus de autenticação
 - ✅ **Histórico de vendas por data** — bônus do enunciado
 - ✅ **Tema claro/escuro persistente** — melhoria de UX
 - ✅ **Dashboard com métricas** — visão geral do movimento
@@ -562,9 +547,9 @@ Para manter o escopo controlado (conforme orientação do enunciado: *"prefira u
 
 ## 👤 Autor
 
-Desenvolvido por **[Caio Reis Alvarenga]** como parte do teste prático da **Kasterweb**.
+Desenvolvido por **Caio Reis Alvarenga** como parte do teste prático da **Kasterweb**.
 
-- GitHub: [@seu-usuario](https://github.com/caioreisalvarenga)
+- GitHub: [@caioreisalvarenga](https://github.com/caioreisalvarenga)
 - E-mail: caioreisalvarenga@gmail.com
 
 ---
